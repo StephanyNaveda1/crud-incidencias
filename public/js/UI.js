@@ -18,10 +18,24 @@ export default class UI {
         // Elementos de la lista y estadísticas
         this.tablaCuerpo = document.getElementById('tabla-incidencias-body');
         this.contadorTotal = document.getElementById('stat-total');
+        this.contadorSolucionadas = document.getElementById('stat-solucionadas');
         this.contadorAlta = document.getElementById('stat-alta');
         
         // Elemento de alertas
         this.alertContainer = document.getElementById('alert-container');
+
+        // Elementos de Login
+        this.loginOverlay = document.getElementById('login-overlay');
+        this.loginForm = document.getElementById('login-form');
+        this.loginUsername = document.getElementById('login-username');
+        this.loginPassword = document.getElementById('login-password');
+        this.btnLogout = document.getElementById('btn-logout');
+
+        // Elementos de Pestañas
+        this.tabPendientes = document.getElementById('tab-pendientes');
+        this.tabSolucionadas = document.getElementById('tab-solucionadas');
+        this.countPendientes = document.getElementById('count-pendientes');
+        this.countSolucionadas = document.getElementById('count-solucionadas');
         
         // Estado local de edición
         this.idEdicion = null;
@@ -135,10 +149,49 @@ export default class UI {
                 minute: '2-digit'
             });
 
+            // Si está resuelta, cambiamos las acciones y añadimos fecha de resolución
+            let accionesHTML = '';
+            let fechaDetalleHTML = `
+                <div class="inc-title">${this.escaparHTML(inc.titulo)}</div>
+                <div class="inc-date" title="Fecha de reporte">📅 ${fechaFormateada}</div>
+            `;
+
+            if (inc.estado === 'Solucionado') {
+                const fechaResObj = new Date(inc.fechaResolucion || inc.fecha);
+                const fechaResFormateada = fechaResObj.toLocaleString('es-VE', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                fechaDetalleHTML += `
+                    <div class="inc-date" style="color: var(--urgencia-baja); font-weight: 600;" title="Fecha de solución">✓ Solucionado: ${fechaResFormateada}</div>
+                `;
+                
+                // Solo se permite eliminar del historial una vez resuelto
+                accionesHTML = `
+                    <button class="btn-action btn-delete" title="Eliminar del historial">
+                        ❌
+                    </button>
+                `;
+            } else {
+                accionesHTML = `
+                    <button class="btn-action btn-resolve" title="Marcar como solucionada">
+                        ✅
+                    </button>
+                    <button class="btn-action btn-edit" title="Editar detalles">
+                        ✏️
+                    </button>
+                    <button class="btn-action btn-delete" title="Eliminar incidencia">
+                        ❌
+                    </button>
+                `;
+            }
+
             tr.innerHTML = `
                 <td>
-                    <div class="inc-title">${this.escaparHTML(inc.titulo)}</div>
-                    <div class="inc-date">${fechaFormateada}</div>
+                    ${fechaDetalleHTML}
                 </td>
                 <td>
                     <span class="location-badge">📍 ${this.escaparHTML(inc.ubicacion)}</span>
@@ -152,12 +205,7 @@ export default class UI {
                     </p>
                 </td>
                 <td class="actions-cell">
-                    <button class="btn-action btn-edit" title="Editar incidencia">
-                        ✏️
-                    </button>
-                    <button class="btn-action btn-delete" title="Eliminar incidencia">
-                        ❌
-                    </button>
+                    ${accionesHTML}
                 </td>
             `;
             this.tablaCuerpo.appendChild(tr);
@@ -168,12 +216,21 @@ export default class UI {
      * Actualiza el panel de estadísticas en tiempo real.
      */
     actualizarEstadisticas(incidencias) {
-        const total = incidencias.length;
-        const alta = incidencias.filter(inc => inc.urgencia === 'Alta').length;
+        const pendientes = incidencias.filter(inc => inc.estado !== 'Solucionado');
+        const solucionadas = incidencias.filter(inc => inc.estado === 'Solucionado');
+        
+        const totalPendientes = pendientes.length;
+        const totalSolucionadas = solucionadas.length;
+        const alta = pendientes.filter(inc => inc.urgencia === 'Alta').length;
 
         // Animación suave de cambio de número
-        this.animarNumero(this.contadorTotal, total);
+        this.animarNumero(this.contadorTotal, totalPendientes);
+        this.animarNumero(this.contadorSolucionadas, totalSolucionadas);
         this.animarNumero(this.contadorAlta, alta);
+
+        // Actualizar badges de las pestañas
+        if (this.countPendientes) this.countPendientes.textContent = totalPendientes;
+        if (this.countSolucionadas) this.countSolucionadas.textContent = totalSolucionadas;
     }
 
     /**

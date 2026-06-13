@@ -11,6 +11,28 @@
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
+    <!-- Pantalla de Inicio de Sesión (Overlay) -->
+    <div id="login-overlay" class="login-overlay">
+        <div class="login-card">
+            <div class="login-logo">
+                <span class="login-icon">🛡️</span>
+                <h2>Soporte UPTT</h2>
+                <p>Gestión de Incidencias · Equipo 4</p>
+            </div>
+            <form id="login-form" autocomplete="on">
+                <div class="form-group">
+                    <label for="login-username">Usuario</label>
+                    <input type="text" id="login-username" name="username" placeholder="Ej. admin" required autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Contraseña</label>
+                    <input type="password" id="login-password" name="password" placeholder="••••••••" required autocomplete="current-password">
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Ingresar</button>
+            </form>
+        </div>
+    </div>
+
     <!-- Contenedor para Notificaciones Dinámicas -->
     <div id="alert-container" class="toast-container"></div>
 
@@ -24,9 +46,14 @@
                     <p>Sistema de Reporte de Incidencias · Equipo 4</p>
                 </div>
             </div>
-            <div class="header-badge">
-                <span class="pulse-indicator"></span>
-                <span>Servidor Activo</span>
+            <div class="header-right">
+                <div class="header-badge">
+                    <span class="pulse-indicator"></span>
+                    <span>Servidor Activo</span>
+                </div>
+                <button id="btn-logout" class="btn-logout" title="Cerrar sesión">
+                    <span>🚪 Cerrar Sesión</span>
+                </button>
             </div>
         </div>
     </header>
@@ -38,11 +65,21 @@
         <section class="stats-grid">
             <div class="stat-card" id="card-total">
                 <div class="stat-content">
-                    <span class="stat-label">Total Reportadas</span>
+                    <span class="stat-label">Pendientes</span>
                     <h2 class="stat-number" id="stat-total">0</h2>
                 </div>
                 <div class="stat-icon-wrapper total-bg">
                     <span>📋</span>
+                </div>
+            </div>
+            
+            <div class="stat-card" id="card-solucionadas">
+                <div class="stat-content">
+                    <span class="stat-label">Solucionadas</span>
+                    <h2 class="stat-number text-success" id="stat-solucionadas">0</h2>
+                </div>
+                <div class="stat-icon-wrapper solucionadas-bg">
+                    <span>✅</span>
                 </div>
             </div>
             
@@ -164,6 +201,16 @@
                             </select>
                         </div>
                     </div>
+                </div>
+
+                <!-- Pestañas para Pendientes vs Solucionadas -->
+                <div class="panel-tabs">
+                    <button class="tab-btn active" id="tab-pendientes">
+                        📋 Pendientes <span class="tab-count" id="count-pendientes">0</span>
+                    </button>
+                    <button class="tab-btn" id="tab-solucionadas">
+                        ✅ Solucionadas <span class="tab-count" id="count-solucionadas">0</span>
+                    </button>
                 </div>
 
                 <!-- Tabla de Incidencias -->

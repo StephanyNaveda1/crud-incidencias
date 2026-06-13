@@ -7,37 +7,39 @@
     --font-primary: 'Outfit', 'Plus Jakarta Sans', sans-serif;
     --font-secondary: 'Plus Jakarta Sans', sans-serif;
 
-    /* Colores del Tema (Gama Oscura/Sleek Moderna) */
-    --bg-app: #090d16;
-    --bg-surface: #131b2e;
-    --bg-surface-header: #1a243d;
-    --bg-input: #1b2644;
-    --bg-input-focus: #223159;
-    --border-color: #24355a;
-    --border-focus: #4b68ff;
+    /* Colores del Tema (Gama Crimson & Gold de la UPTT) */
+    --bg-app: #f3eacf;
+    --bg-surface: #dab880;
+    --g-surface-header: #400708;
+    --bg-surface-header: #cd8640;
+    --bg-input: #dab880;
+    --bg-input-focus: #f3eacf;
+    --border-color: rgba(205, 134, 64, 0.35);
+    --border-focus: #dab880;
     
     /* Colores Primarios y Neutros */
-    --primary: #4f46e5;
-    --primary-hover: #6366f1;
-    --primary-glow: rgba(79, 70, 229, 0.3);
+    --primary: #a31414;
+    --primary-hover: #cd8640;
+    --primary-glow: rgba(163, 20, 20, 0.3);
     
-    --text-main: #f3f4f6;
-    --text-muted: #9ca3af;
-    --text-inverse: #ffffff;
+    --text-main: #50090a;
+    --text-muted: #65090c;
+    --text-inverse: #50090a;
+    --text-placeholder: #50090a91;
     
     /* Estados y Niveles de Urgencia */
-    --urgencia-baja: #10b981;
-    --urgencia-baja-bg: rgba(16, 185, 129, 0.12);
-    --urgencia-media: #f59e0b;
-    --urgencia-media-bg: rgba(245, 158, 11, 0.12);
-    --urgencia-alta: #ef4444;
-    --urgencia-alta-bg: rgba(239, 68, 68, 0.15);
+    --urgencia-baja: #dab880;
+    --urgencia-baja-bg: rgba(218, 184, 128, 0.15);
+    --urgencia-media: #cd8640;
+    --urgencia-media-bg: rgba(205, 134, 64, 0.15);
+    --urgencia-alta: #a31414;
+    --urgencia-alta-bg: rgba(163, 20, 20, 0.2);
     
     /* Sombras y Efectos */
-    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
-    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.25);
-    --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
-    --shadow-glow-alta: 0 0 15px rgba(239, 68, 68, 0.3);
+    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.2);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.35);
+    --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+    --shadow-glow-alta: 0 0 15px rgba(163, 20, 20, 0.4);
     
     --radius-sm: 8px;
     --radius-md: 12px;
@@ -115,7 +117,7 @@ body {
 }
 
 .header-badge {
-    background-color: rgba(79, 70, 229, 0.15);
+    background-color: rgba(163, 20, 20, 0.25);
     border: 1px solid var(--border-color);
     padding: 0.5rem 1rem;
     border-radius: 50px;
@@ -124,7 +126,7 @@ body {
     gap: 0.6rem;
     font-size: 0.85rem;
     font-weight: 600;
-    color: #cbd5e1;
+    color: var(--text-main);
 }
 
 .pulse-indicator {
@@ -245,8 +247,8 @@ body {
 }
 
 .total-bg {
-    background-color: rgba(79, 70, 229, 0.15);
-    color: var(--primary-hover);
+    background-color: rgba(218, 184, 128, 0.15);
+    color: var(--text-muted);
 }
 
 .alta-bg {
@@ -323,7 +325,7 @@ body {
 label {
     font-size: 0.9rem;
     font-weight: 600;
-    color: #cbd5e1;
+    color: var(--text-main);
 }
 
 .required {
@@ -331,6 +333,7 @@ label {
 }
 
 input[type="text"],
+input[type="password"],
 select,
 textarea {
     background-color: var(--bg-input);
@@ -346,11 +349,13 @@ textarea {
 }
 
 input[type="text"]::placeholder,
+input[type="password"]::placeholder,
 textarea::placeholder {
-    color: rgba(156, 163, 175, 0.5);
+    color: var(--text-placeholder);
 }
 
 input[type="text"]:focus,
+input[type="password"]:focus,
 select:focus,
 textarea:focus {
     border-color: var(--border-focus);
@@ -400,14 +405,15 @@ textarea {
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, var(--primary) 0%, #3b37c3 100%);
-    color: var(--text-inverse);
-    box-shadow: 0 4px 10px rgba(79, 70, 229, 0.2);
+    background: linear-gradient(135deg, var(--bg-app) 0%, var(--bg-surface) 100%);
+    color: var(--text-main);
+    border: 1.5px solid var(--border-focus);
+    box-shadow: 0 4px 10px rgba(163, 20, 20, 0.3);
 }
 
 .btn-primary:hover {
-    background: linear-gradient(135deg, var(--primary-hover) 0%, var(--primary) 100%);
-    box-shadow: 0 4px 15px rgba(79, 70, 229, 0.35);
+    background: linear-gradient(135deg, var(--bg-surface) 0%, var(--primary-hover) 100%);
+    box-shadow: 0 4px 15px rgba(205, 134, 64, 0.4);
     transform: translateY(-1px);
 }
 
@@ -418,13 +424,13 @@ textarea {
 }
 
 .btn-secondary {
-    background-color: #27355a;
+    background-color: #50090a;
     border: 1px solid var(--border-color);
     color: var(--text-main);
 }
 
 .btn-secondary:hover {
-    background-color: #314473;
+    background-color: #65090c;
 }
 
 .btn-editing {
@@ -509,7 +515,7 @@ textarea {
     background-color: rgba(26, 36, 61, 0.5);
     padding: 1rem 1.5rem;
     font-weight: 700;
-    color: #cbd5e1;
+    color: var(--text-main);
     font-size: 0.85rem;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -552,7 +558,7 @@ textarea {
     border-radius: 50px;
     font-size: 0.8rem;
     font-weight: 600;
-    color: #e2e8f0;
+    color:  var(--text-main);
     white-space: nowrap;
 }
 
@@ -592,7 +598,7 @@ textarea {
 
 .desc-text {
     font-size: 0.9rem;
-    color: #cbd5e1;
+    color: var(--text-main);
     overflow: hidden;
     text-overflow: ellipsis;
     display: -webkit-box;
@@ -623,22 +629,24 @@ textarea {
 }
 
 .btn-edit {
-    background-color: rgba(79, 70, 229, 0.1);
-    border: 1px solid rgba(79, 70, 229, 0.2);
+    background-color: rgba(218, 184, 128, 0.1);
+    border: 1px solid rgba(218, 184, 128, 0.2);
 }
 
 .btn-edit:hover {
-    background-color: var(--primary);
+    background-color: var(--border-focus);
+    color: var(--bg-app);
     transform: scale(1.1);
 }
 
 .btn-delete {
-    background-color: rgba(239, 68, 68, 0.1);
-    border: 1px solid rgba(239, 68, 68, 0.2);
+    background-color: rgba(163, 20, 20, 0.15);
+    border: 1px solid rgba(163, 20, 20, 0.3);
 }
 
 .btn-delete:hover {
     background-color: var(--urgencia-alta);
+    color: var(--text-main);
     transform: scale(1.1);
 }
 
@@ -773,7 +781,7 @@ textarea {
 
 /* --- Pie de Página --- */
 .app-footer {
-    background-color: #0b0f1a;
+    background-color: var(--bg-app);
     border-top: 1px solid var(--border-color);
     padding: 1.5rem;
     margin-top: auto;
@@ -800,4 +808,182 @@ textarea {
         flex-direction: column;
         text-align: center;
     }
+}
+
+/* --- Estilos para Login --- */
+.login-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: radial-gradient(circle, var(--bg-surface) 0%, var(--bg-app) 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 200;
+    padding: 1.5rem;
+    transition: opacity 0.4s ease, visibility 0.4s ease;
+}
+
+.login-overlay.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.login-card {
+    background-color: var(--bg-surface);
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 2.5rem 2rem;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: var(--shadow-lg), 0 0 30px rgba(163, 20, 20, 0.2);
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    animation: login-entrance 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes login-entrance {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.login-logo {
+    text-align: center;
+}
+
+.login-logo .login-icon {
+    font-size: 3rem;
+    display: block;
+    margin-bottom: 0.5rem;
+    filter: drop-shadow(0 2px 8px rgba(218, 184, 128, 0.4));
+}
+
+.login-logo h2 {
+    font-family: var(--font-secondary);
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--text-main);
+    letter-spacing: -0.5px;
+}
+
+.login-logo p {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.btn-block {
+    width: 100%;
+    margin-top: 0.5rem;
+}
+
+/* --- Botón Cerrar Sesión --- */
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.btn-logout {
+    background: none;
+    border: 1.5px solid var(--border-color);
+    color: var(--text-muted);
+    padding: 0.5rem 1rem;
+    font-family: var(--font-primary);
+    font-size: 0.85rem;
+    font-weight: 700;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: var(--transition);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-logout:hover {
+    border-color: var(--border-focus);
+    color: var(--text-main);
+    background-color: var(--primary-hover);
+}
+
+/* --- Pestañas (Tabs) en Listado --- */
+.panel-tabs {
+    display: flex;
+    border-bottom: 1.5px solid var(--border-color);
+    background-color: rgba(80, 9, 10, 0.3);
+}
+
+.tab-btn {
+    background: none;
+    border: none;
+    border-bottom: 3.5px solid transparent;
+    padding: 1rem 1.5rem;
+    color: var(--text-muted);
+    font-weight: 700;
+    font-family: var(--font-primary);
+    cursor: pointer;
+    transition: var(--transition);
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.tab-btn:hover {
+    color: var(--text-main);
+    background-color: rgba(255, 255, 255, 0.02);
+}
+
+.tab-btn.active {
+    color: var(--text-main);
+    border-bottom-color: var(--border-focus);
+    background-color: rgba(255, 255, 255, 0.04);
+}
+
+.tab-btn span.tab-count {
+    background-color: rgba(218, 184, 128, 0.15);
+    color: var(--text-muted);
+    padding: 0.1rem 0.6rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 800;
+}
+
+.tab-btn.active span.tab-count {
+    background-color: var(--border-focus);
+    color: var(--bg-app);
+}
+
+/* --- Botón Resolver Incidencia --- */
+.btn-resolve {
+    background-color: rgba(218, 184, 128, 0.15);
+    border: 1px solid rgba(218, 184, 128, 0.3);
+}
+
+.btn-resolve:hover {
+    background-color: var(--urgencia-baja);
+    color: var(--bg-app);
+    transform: scale(1.1);
+}
+
+.solucionadas-bg {
+    background-color: rgba(218, 184, 128, 0.15);
+    color: var(--urgencia-baja);
+}
+
+#card-solucionadas::before {
+    background-color: var(--urgencia-baja);
+}
+
+#card-solucionadas:hover {
+    box-shadow: 0 0 15px rgba(218, 184, 128, 0.25), var(--shadow-lg);
 }

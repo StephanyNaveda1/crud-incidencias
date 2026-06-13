@@ -99,6 +99,25 @@ router.put('/:id', validarIncidencia, (req, res) => {
 });
 
 /**
+ * PUT /api/incidencias/:id/resolver
+ * Marca una incidencia como solucionada.
+ */
+router.put('/:id/resolver', (req, res) => {
+    try {
+        const { id } = req.params;
+        const incidenciaActualizada = db.resolver(id);
+
+        if (!incidenciaActualizada) {
+            return res.status(404).json({ error: 'La incidencia que intenta resolver no existe.' });
+        }
+
+        res.json(incidenciaActualizada);
+    } catch (error) {
+        res.status(500).json({ error: 'Error al resolver la incidencia.' });
+    }
+});
+
+/**
  * DELETE /api/incidencias/:id
  * Elimina una incidencia.
  */

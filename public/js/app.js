@@ -6,11 +6,17 @@ const ui = new UI();
 
 // Estado local de la aplicación
 let todasLasIncidencias = [];
+let activeTab = 'pendientes'; // Pestaña activa por defecto
 
 /**
  * Carga inicial de incidencias desde el servidor.
  */
 async function cargarIncidencias() {
+    // Si no está autenticado en sessionStorage, no cargar
+    if (sessionStorage.getItem('isLoggedIn') !== 'true') {
+        return;
+    }
+
     try {
         const respuesta = await fetch('/api/incidencias');
         if (!respuesta.ok) {
@@ -19,7 +25,7 @@ async function cargarIncidencias() {
         todasLasIncidencias = await respuesta.json();
         
         // Renderizar la lista inicial y actualizar estadísticas
-        ui.renderizarLista(todasLasIncidencias);
+        filtrarIncidencias();
         ui.actualizarEstadisticas(todasLasIncidencias);
     } catch (error) {
         console.error('Error cargando incidencias:', error);
@@ -82,10 +88,13 @@ async function guardarIncidencia(e) {
         // Limpiar el formulario e interfaz de edición
         ui.limpiarFormulario();
         
-        // Re-filtrar si hay un término de búsqueda activo, o renderizar todo
+        // Volver a la pestaña de pendientes si se creó/editó
+        activeTab = 'pendientes';
+        ui.tabPendientes.classList.add('active');
+        ui.tabSolucionadas.classList.remove('active');
+
+        // Re-filtrar e imprimir estadísticas actualizadas
         filtrarIncidencias();
-        
-        // Actualizar estadísticas basadas en todos los datos históricos
         ui.actualizarEstadisticas(todasLasIncidencias);
 
     } catch (error) {
@@ -139,6 +148,46 @@ async function eliminarIncidencia(id) {
 }
 
 /**
+ * Marca una incidencia como resuelta/solucionada.
+ */
+async function resolverIncidencia(id) {
+    const incidencia = todasLasIncidencias.find(inc => inc.id === id);
+    if (!incidencia) return;
+
+    try {
+        const respuesta = await fetch(`/api/incidencias/${id}/resolver`, {
+            method: 'PUT'
+        });
+
+        const resultado = await respuesta.json();
+
+        if (!respuesta.ok) {
+            throw new Error(resultado.error || 'No se pudo marcar la incidencia como resuelta.');
+        }
+
+        // Actualizar en el estado local
+        todasLasIncidencias = todasLasIncidencias.map(inc => 
+            inc.id === id ? resultado : inc
+        );
+
+        ui.mostrarMensaje('Incidencia marcada como solucionada.');
+
+        // Si se estaba editando, limpiar el formulario
+        if (ui.idEdicion === id) {
+            ui.limpiarFormulario();
+        }
+
+        // Actualizar tabla y estadísticas
+        filtrarIncidencias();
+        ui.actualizarEstadisticas(todasLasIncidencias);
+
+    } catch (error) {
+        console.error('Error al resolver incidencia:', error);
+        ui.mostrarMensaje(error.message, 'error');
+    }
+}
+
+/**
  * Prepara el formulario para editar la incidencia seleccionada.
  */
 function iniciarEdicionIncidencia(id) {
@@ -159,6 +208,11 @@ function filtrarIncidencias() {
     const urgenciaSeleccionada = filtroUrgencia.value;
 
     const incidenciasFiltradas = todasLasIncidencias.filter(inc => {
+        // Filtro por pestaña (Pendientes vs Solucionadas)
+        const coincidePestana = activeTab === 'pendientes'
+            ? (inc.estado !== 'Solucionado')
+            : (inc.estado === 'Solucionado');
+
         // Filtro por término de búsqueda (Ubicación o Título)
         const coincideTermino = textoBusqueda === '' || 
             inc.ubicacion.toLowerCase().includes(textoBusqueda) || 
@@ -169,10 +223,10 @@ function filtrarIncidencias() {
         const coincideUrgencia = urgenciaSeleccionada === '' || 
             inc.urgencia === urgenciaSeleccionada;
 
-        return coincideTermino && coincideUrgencia;
+        return coincidePestana && coincideTermino && coincideUrgencia;
     });
 
-    // Renderiza la lista filtrada, pero las estadísticas de cabecera se mantienen sobre la base total
+    // Renderiza la lista filtrada
     ui.renderizarLista(incidenciasFiltradas);
 }
 
@@ -180,7 +234,62 @@ function filtrarIncidencias() {
 
 // Cargar la página
 document.addEventListener('DOMContentLoaded', () => {
-    cargarIncidencias();
+    // Verificar si ya está autenticado en sessionStorage
+    if (sessionStorage.getItem('isLoggedIn') === 'true') {
+        ui.loginOverlay.classList.add('hidden');
+        cargarIncidencias();
+    } else {
+        ui.loginOverlay.classList.remove('hidden');
+    }
+
+    // Enviar formulario de login
+    ui.loginForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const username = ui.loginUsername.value.trim();
+        const password = ui.loginPassword.value;
+
+        if (username === 'admin' && password === '1234') {
+            sessionStorage.setItem('isLoggedIn', 'true');
+            ui.loginOverlay.classList.add('hidden');
+            ui.loginForm.reset();
+            ui.mostrarMensaje('¡Inicio de sesión exitoso!');
+            cargarIncidencias();
+        } else {
+            ui.mostrarMensaje('Usuario o contraseña incorrectos.', 'error');
+        }
+    });
+
+    // Cerrar sesión
+    ui.btnLogout.addEventListener('click', (e) => {
+        e.preventDefault();
+        sessionStorage.removeItem('isLoggedIn');
+        ui.loginOverlay.classList.remove('hidden');
+        ui.mostrarMensaje('Sesión cerrada con éxito.', 'info');
+        // Reset inputs de login
+        ui.loginUsername.value = '';
+        ui.loginPassword.value = '';
+    });
+
+    // Pestañas (Tabs)
+    ui.tabPendientes.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (activeTab === 'pendientes') return;
+        activeTab = 'pendientes';
+        ui.tabPendientes.classList.add('active');
+        ui.tabSolucionadas.classList.remove('active');
+        ui.limpiarFormulario();
+        filtrarIncidencias();
+    });
+
+    ui.tabSolucionadas.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (activeTab === 'solucionadas') return;
+        activeTab = 'solucionadas';
+        ui.tabSolucionadas.classList.add('active');
+        ui.tabPendientes.classList.remove('active');
+        ui.limpiarFormulario();
+        filtrarIncidencias();
+    });
 
     // Guardar (Submit del formulario)
     ui.formulario.addEventListener('submit', guardarIncidencia);
@@ -195,7 +304,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('search-input').addEventListener('input', filtrarIncidencias);
     document.getElementById('filter-urgency').addEventListener('change', filtrarIncidencias);
 
-    // Delegación de eventos en la tabla para botones de Acción (Editar/Eliminar)
+    // Delegación de eventos en la tabla para botones de Acción (Editar/Eliminar/Resolver)
     ui.tablaCuerpo.addEventListener('click', (e) => {
         const boton = e.target.closest('.btn-action');
         if (!boton) return;
@@ -207,6 +316,8 @@ document.addEventListener('DOMContentLoaded', () => {
             eliminarIncidencia(id);
         } else if (boton.classList.contains('btn-edit')) {
             iniciarEdicionIncidencia(id);
+        } else if (boton.classList.contains('btn-resolve')) {
+            resolverIncidencia(id);
         }
     });
 });

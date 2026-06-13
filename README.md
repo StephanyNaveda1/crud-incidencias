@@ -65,3 +65,6 @@ npm install
     ```
 
 El servidor estará disponible en la dirección local: **[http://localhost:3000](http://localhost:3000)**.
+
+### 4. Usuario y Contraseña
+Al ingresar en la app deberas colocar el usuario (`admin`) con la contraseña (`1234`) para poder ingresar, de lo contrario no entraras.

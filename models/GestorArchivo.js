@@ -59,7 +59,7 @@ class GestorArchivo {
     }
 
     /**
-     * Agrega una nueva incidencia y le genera un ID único y fecha.
+     * Agrega una nueva incidencia y le genera un ID único, estado inicial y fecha.
      */
     agregar(nuevaIncidencia) {
         const incidencias = this.leer();
@@ -71,6 +71,7 @@ class GestorArchivo {
         const registro = {
             id,
             fecha,
+            estado: 'Pendiente', // Por defecto todas nacen pendientes
             titulo: nuevaIncidencia.titulo,
             ubicacion: nuevaIncidencia.ubicacion,
             urgencia: nuevaIncidencia.urgencia,
@@ -93,7 +94,7 @@ class GestorArchivo {
             return null;
         }
 
-        // Actualizamos los campos permitidos y mantenemos id y fecha original
+        // Actualizamos los campos permitidos y mantenemos id, fecha y estado original
         incidencias[index] = {
             ...incidencias[index],
             titulo: datosActualizados.titulo,
@@ -101,6 +102,27 @@ class GestorArchivo {
             urgencia: datosActualizados.urgencia,
             descripcion: datosActualizados.descripcion,
             fechaActualizacion: new Date().toISOString()
+        };
+
+        this.guardar(incidencias);
+        return incidencias[index];
+    }
+
+    /**
+     * Marca una incidencia como solucionada.
+     */
+    resolver(id) {
+        const incidencias = this.leer();
+        const index = incidencias.findIndex(inc => inc.id === id);
+
+        if (index === -1) {
+            return null;
+        }
+
+        incidencias[index] = {
+            ...incidencias[index],
+            estado: 'Solucionado',
+            fechaResolucion: new Date().toISOString()
         };
 
         this.guardar(incidencias);
