@@ -1,9 +1,45 @@
 const express = require('express');
 const router = express.Router();
+const multer = require('multer');
+const fs = require('fs');
+const path = require('path');
 const GestorArchivo = require('../models/GestorArchivo');
 
 // Instanciamos el gestor de archivos para la base de datos de incidencias
 const db = new GestorArchivo('incidencias.json');
+
+// Asegurar existencia de la carpeta 'uploads'
+const uploadsDir = path.join(__dirname, '..', 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+// Configurar multer para el almacenamiento de archivos
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, uploadsDir);
+    },
+    filename: function (req, file, cb) {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+        cb(null, uniqueSuffix + path.extname(file.originalname));
+    }
+});
+const upload = multer({ storage: storage });
+
+// Servir fotos de evidencia a través de una ruta dedicada con res.sendFile
+router.get('/uploads/:filename', (req, res) => {
+    try {
+        const { filename } = req.params;
+        const rutaFoto = path.join(uploadsDir, filename);
+        if (fs.existsSync(rutaFoto)) {
+            res.sendFile(rutaFoto);
+        } else {
+            res.status(404).send('Captura de evidencia no encontrada.');
+        }
+    } catch (error) {
+        res.status(500).send('Error al servir el archivo de evidencia.');
+    }
+});
 
 // Función de validación compartida para creación y edición
 function validarIncidencia(req, res, next) {
@@ -26,12 +62,19 @@ function validarIncidencia(req, res, next) {
         return res.status(400).json({ error: 'La descripción detallada debe tener un mínimo de 15 caracteres.' });
     }
 
+    // Subida obligatoria de evidencia en POST (creación)
+    if (req.method === 'POST' && !req.file) {
+        return res.status(400).json({ error: 'La captura o foto de evidencia es obligatoria.' });
+    }
+
     // Si pasa las validaciones, saneamos los datos y continuamos
     req.saneado = {
         titulo: titulo.trim(),
         ubicacion: ubicacion.trim(),
         urgencia,
-        descripcion: descripcion.trim()
+        descripcion: descripcion.trim(),
+        // Guardamos el nombre de la foto si fue subida
+        foto: req.file ? req.file.filename : undefined
     };
 
     next();
@@ -68,9 +111,9 @@ router.get('/:id', (req, res) => {
 
 /**
  * POST /api/incidencias
- * Registra una nueva incidencia.
+ * Registra una nueva incidencia con soporte de subida de imagen.
  */
-router.post('/', validarIncidencia, (req, res) => {
+router.post('/', upload.single('foto'), validarIncidencia, (req, res) => {
     try {
         const nuevaInc = db.agregar(req.saneado);
         res.status(201).json(nuevaInc);
@@ -81,9 +124,9 @@ router.post('/', validarIncidencia, (req, res) => {
 
 /**
  * PUT /api/incidencias/:id
- * Edita una incidencia existente.
+ * Edita una incidencia existente con soporte opcional de subida de imagen.
  */
-router.put('/:id', validarIncidencia, (req, res) => {
+router.put('/:id', upload.single('foto'), validarIncidencia, (req, res) => {
     try {
         const { id } = req.params;
         const incidenciaActualizada = db.actualizar(id, req.saneado);
@@ -99,21 +142,45 @@ router.put('/:id', validarIncidencia, (req, res) => {
 });
 
 /**
- * PUT /api/incidencias/:id/resolver
- * Marca una incidencia como solucionada.
+ * PUT /api/incidencias/:id/estado
+ * Cambia el estado de una incidencia siguiendo el flujo estricto de la máquina de estados.
  */
-router.put('/:id/resolver', (req, res) => {
+router.put('/:id/estado', (req, res) => {
     try {
         const { id } = req.params;
-        const incidenciaActualizada = db.resolver(id);
+        const { estado, notasResolucion } = req.body;
+
+        if (!estado) {
+            return res.status(400).json({ error: 'El nuevo estado es obligatorio.' });
+        }
+
+        const incidenciaActualizada = db.cambiarEstado(id, estado, notasResolucion);
 
         if (!incidenciaActualizada) {
-            return res.status(404).json({ error: 'La incidencia que intenta resolver no existe.' });
+            return res.status(404).json({ error: 'La incidencia que intenta actualizar no existe.' });
         }
 
         res.json(incidenciaActualizada);
     } catch (error) {
-        res.status(500).json({ error: 'Error al resolver la incidencia.' });
+        res.status(400).json({ error: error.message });
+    }
+});
+
+/**
+ * PUT /api/incidencias/:id/resolver
+ * Marca una incidencia como solucionada (mantenido por compatibilidad).
+ */
+router.put('/:id/resolver', (req, res) => {
+    try {
+        const { id } = req.params;
+        const { notasResolucion } = req.body;
+        
+        // Transición directa al estado final 'Resuelta'
+        const incidenciaActualizada = db.cambiarEstado(id, 'Resuelta', notasResolucion || 'Resolución rápida');
+
+        res.json(incidenciaActualizada);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
     }
 });
 

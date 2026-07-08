@@ -987,3 +987,101 @@ textarea {
 #card-solucionadas:hover {
     box-shadow: 0 0 15px rgba(218, 184, 128, 0.25), var(--shadow-lg);
 }
+
+/* --- Alerta de SLA: Incidencias con más de 3 días sin resolver --- */
+.sla-critical-row {
+    background-color: rgba(163, 20, 20, 0.08) !important;
+    box-shadow: inset 4px 0 0 var(--urgencia-alta);
+}
+
+.sla-critical-row:hover {
+    background-color: rgba(163, 20, 20, 0.12) !important;
+}
+
+/* --- Miniatura de evidencia fotográfica --- */
+input[type="file"]::file-selector-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.8rem 1.5rem;
+    font-family: var(--font-primary);
+    font-size: 0.95rem;
+    font-weight: 700;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: var(--transition);
+    text-decoration: none;
+    background: linear-gradient(135deg, var(--bg-app) 0%, var(--bg-surface) 100%);
+    color: var(--text-main);
+    border: 1.5px solid var(--border-focus);
+    box-shadow: 0 4px 10px rgba(163, 20, 20, 0.3);
+    cursor: pointer;
+}
+input[type="file"]::file-selector-button:hover {
+    background: linear-gradient(135deg, var(--bg-surface) 0%, var(--primary-hover) 100%);
+    box-shadow: 0 4px 15px rgba(205, 134, 64, 0.4);
+    transform: translateY(-1px);
+}
+
+
+.evidence-thumb-container {
+    margin-top: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.evidence-thumb {
+    width: 42px;
+    height: 42px;
+    object-fit: cover;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--border-color);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.evidence-thumb:hover {
+    transform: scale(1.15);
+    box-shadow: var(--shadow-sm);
+}
+
+.btn-evidence-text {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-main);
+    text-decoration: underline;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    cursor: pointer;
+}
+
+.btn-evidence-text:hover {
+    color: var(--primary);
+}
+
+/* --- Badges para la Máquina de Estados --- */
+.badge-estado-pendiente {
+    background-color: rgba(218, 184, 128, 0.15);
+    color: #50090a;
+    border: 1px solid rgba(218, 184, 128, 0.4);
+}
+
+.badge-estado-asignado {
+    background-color: rgba(59, 130, 246, 0.15);
+    color: #2563eb;
+    border: 1px solid rgba(59, 130, 246, 0.4);
+}
+
+.badge-estado-proceso {
+    background-color: rgba(14, 165, 233, 0.15);
+    color: #0284c7;
+    border: 1px solid rgba(14, 165, 233, 0.4);
+}
+
+.badge-estado-resuelta {
+    background-color: rgba(16, 185, 129, 0.15);
+    color: #059669;
+    border: 1px solid rgba(16, 185, 129, 0.4);
+}

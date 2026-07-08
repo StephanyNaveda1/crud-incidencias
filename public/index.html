@@ -47,6 +47,9 @@
                 </div>
             </div>
             <div class="header-right">
+                <a href="/atencion-inmediata" target="_blank" class="btn-report" style="margin-right: 15px; display: inline-flex; align-items: center; gap: 5px; background: var(--primary); color: white; border: 1.5px solid var(--border-focus); border-radius: var(--radius-sm); padding: 0.5rem 1rem; font-size: 0.85rem; font-weight: 700; text-decoration: none; transition: var(--transition);" onmouseover="this.style.background='var(--primary-hover)'" onmouseout="this.style.background='var(--primary)'">
+                    <span>🚨 Atención Inmediata</span>
+                </a>
                 <div class="header-badge">
                     <span class="pulse-indicator"></span>
                     <span>Servidor Activo</span>
@@ -163,6 +166,20 @@
                         <span class="input-hint">Debe ingresar al menos 15 caracteres.</span>
                     </div>
 
+                    <!-- Evidencia Fotográfica (Obligatorio) -->
+                    <div class="form-group">
+                        <label for="foto">Captura o Foto de Evidencia <span class="required">*</span></label>
+                        <input
+                            class="imagen"
+                            type="file" 
+                            id="foto" 
+                            name="foto" 
+                            accept="image/*" 
+                            required
+                        >
+                        <span class="input-hint">Suba una imagen de evidencia fotográfica del fallo (obligatoria).</span>
+                    </div>
+
                     <!-- Acciones del Formulario -->
                     <div class="form-actions">
                         <button type="button" id="btn-cancelar-edicion" class="btn btn-secondary" style="display: none;">
@@ -250,6 +267,34 @@
             <p>&copy; 2026 Universidad Politécnica Territorial de Trujillo (UPTT)</p>
         </div>
     </footer>
+
+    <!-- Modal para Notas de Resolución (Máquina de Estados) -->
+    <div id="resolution-modal" class="login-overlay hidden" style="background: rgba(0,0,0,0.65); z-index: 1000; display: flex; align-items: center; justify-content: center;">
+        <div class="login-card" style="max-width: 450px; background: var(--bg-surface); border: 1.5px solid var(--border-color); box-shadow: var(--shadow-lg);">
+            <div class="login-logo" style="margin-bottom: 1.25rem;">
+                <span class="login-icon">📝</span>
+                <h2>Notas de Resolución</h2>
+                <p>Describa cómo se solucionó la incidencia de forma técnica.</p>
+            </div>
+            <form id="resolution-form" novalidate>
+                <div class="form-group" style="margin-bottom: 1.25rem;">
+                    <label for="resolution-notes">Historial de Notas de Resolución <span class="required">*</span></label>
+                    <textarea 
+                        id="resolution-notes" 
+                        name="notes" 
+                        rows="4" 
+                        placeholder="Detalles técnicos de la solución, repuestos, acciones tomadas..." 
+                        required
+                        style="background-color: var(--bg-input); border: 1.5px solid var(--border-color); color: var(--text-main); font-family: var(--font-primary); width: 100%; padding: 0.75rem 1rem; border-radius: var(--radius-sm); outline: none;"
+                    ></textarea>
+                </div>
+                <div class="form-actions" style="display: flex; gap: 0.75rem; justify-content: flex-end;">
+                    <button type="button" id="btn-cancel-resolution" class="btn btn-secondary" style="padding: 0.6rem 1.25rem; font-weight: 700; background-color: #50090a; color: var(--bg-app); border: none; cursor: pointer; border-radius: var(--radius-sm);">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" style="padding: 0.6rem 1.25rem; font-weight: 700; cursor: pointer; border-radius: var(--radius-sm);">Resolver Incidencia</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <!-- JS de la aplicación como ES6 Module -->
     <script type="module" src="js/app.js"></script>

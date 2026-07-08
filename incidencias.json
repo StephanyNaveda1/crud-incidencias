@@ -1,1 +1,15 @@
-[]
+[
+  {
+    "id": "inc_1783447199047_7780r",
+    "fecha": "2026-07-07T17:59:59.047Z",
+    "estado": "Resuelta",
+    "titulo": "Servidor Caido",
+    "ubicacion": "Servidores y Redes",
+    "urgencia": "Alta",
+    "descripcion": "Descripción del problema detalladamente",
+    "foto": "1783447199042-233717258.png",
+    "notasResolucion": "Se resolvió haciendo el procedimiento....",
+    "fechaActualizacion": "2026-07-07T18:01:11.416Z",
+    "fechaResolucion": "2026-07-07T18:01:11.416Z"
+  }
+]

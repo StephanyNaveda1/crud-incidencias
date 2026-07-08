@@ -51,6 +51,10 @@ export default class UI {
         const urgencia = this.selectUrgencia.value;
         const descripcion = this.textareaDescripcion.value.trim();
 
+        // Obtener la foto
+        const fotoInput = document.getElementById('foto');
+        const fotoFile = fotoInput && fotoInput.files ? fotoInput.files[0] : null;
+
         // Validaciones estrictas según los requerimientos
         if (!titulo) {
             this.inputTitulo.focus();
@@ -72,8 +76,14 @@ export default class UI {
             throw new Error('La descripción detallada debe tener un mínimo de 15 caracteres.');
         }
 
-        // Retornamos un objeto de la clase Incidencia
-        return new Incidencia(titulo, ubicacion, urgencia, descripcion, this.idEdicion);
+        // Si es creación nueva (no es edición), la foto es obligatoria
+        if (!this.idEdicion && !fotoFile) {
+            if (fotoInput) fotoInput.focus();
+            throw new Error('La captura o foto de evidencia es obligatoria para reportar una incidencia.');
+        }
+
+        // Retornamos un objeto de la clase Incidencia con la foto
+        return new Incidencia(titulo, ubicacion, urgencia, descripcion, this.idEdicion, fotoFile);
     }
 
     /**
@@ -87,6 +97,12 @@ export default class UI {
         this.selectUbicacion.value = incidencia.ubicacion;
         this.selectUrgencia.value = incidencia.urgencia;
         this.textareaDescripcion.value = incidencia.descripcion;
+
+        // Para edición, la foto no es estrictamente obligatoria (se puede mantener la anterior)
+        const fotoInput = document.getElementById('foto');
+        if (fotoInput) {
+            fotoInput.required = false;
+        }
 
         // Modificar aspecto visual del formulario a modo edición
         this.formTitle.innerHTML = '✏️ Editar Incidencia';
@@ -104,6 +120,12 @@ export default class UI {
     limpiarFormulario() {
         this.idEdicion = null;
         this.formulario.reset();
+        
+        // Reestablecer la foto como obligatoria para nuevos registros
+        const fotoInput = document.getElementById('foto');
+        if (fotoInput) {
+            fotoInput.required = true;
+        }
         
         // Volver a modo creación
         this.formTitle.innerHTML = '➕ Reportar Incidencia';
@@ -136,6 +158,12 @@ export default class UI {
             const tr = document.createElement('tr');
             tr.setAttribute('data-id', inc.id);
             
+            // Si no está resuelta y tiene más de 3 días, aplicar la alerta visual roja
+            const esResuelta = inc.estado === 'Resuelta';
+            if (!esResuelta && inc.diasTranscurridos > 3) {
+                tr.classList.add('sla-critical-row');
+            }
+            
             // Clase de urgencia para el badge
             const urgenciaClass = `badge-urgencia-${inc.urgencia.toLowerCase()}`;
             
@@ -149,14 +177,25 @@ export default class UI {
                 minute: '2-digit'
             });
 
-            // Si está resuelta, cambiamos las acciones y añadimos fecha de resolución
-            let accionesHTML = '';
+            // Generar miniatura/botón para ver la evidencia
+            let evidenciaHTML = '';
+            if (inc.foto) {
+                evidenciaHTML = `
+                    <div class="evidence-thumb-container">
+                        <img src="/api/incidencias/uploads/${inc.foto}" class="evidence-thumb" alt="Evidencia" title="Ver imagen en tamaño completo" onclick="window.open('/api/incidencias/uploads/${inc.foto}', '_blank')">
+                        <a href="/api/incidencias/uploads/${inc.foto}" target="_blank" class="btn-evidence-text">🖼️ Evidencia</a>
+                    </div>
+                `;
+            }
+
+            // Formatear detalle de fechas
             let fechaDetalleHTML = `
                 <div class="inc-title">${this.escaparHTML(inc.titulo)}</div>
                 <div class="inc-date" title="Fecha de reporte">📅 ${fechaFormateada}</div>
             `;
+            let notasResolucionHTML = '';
 
-            if (inc.estado === 'Solucionado') {
+            if (esResuelta) {
                 const fechaResObj = new Date(inc.fechaResolucion || inc.fecha);
                 const fechaResFormateada = fechaResObj.toLocaleString('es-VE', {
                     day: '2-digit',
@@ -166,9 +205,33 @@ export default class UI {
                     minute: '2-digit'
                 });
                 fechaDetalleHTML += `
-                    <div class="inc-date" style="color: var(--urgencia-baja); font-weight: 600;" title="Fecha de solución">✓ Solucionado: ${fechaResFormateada}</div>
+                    <div class="inc-date" style="color: #059669; font-weight: 700;" title="Fecha de solución">✓ Resuelta: ${fechaResFormateada}</div>
                 `;
-                
+                if (inc.notes || inc.notasResolucion) {
+                    notasResolucionHTML = `
+                        <div style="margin-top: 0.5rem; padding: 0.5rem; background: rgba(16, 185, 129, 0.08); border-left: 3px solid #059669; border-radius: 4px; font-size: 0.8rem; color: #064e3b; word-break: break-word;">
+                            <strong>Resolución:</strong> ${this.escaparHTML(inc.notasResolucion || inc.notes)}
+                        </div>
+                    `;
+                }
+            } else {
+                // Trazabilidad de SLA: Días transcurridos
+                const colorSla = inc.diasTranscurridos > 3 ? 'var(--urgencia-alta)' : 'var(--text-muted)';
+                const pesoSla = inc.diasTranscurridos > 3 ? '700' : '500';
+                fechaDetalleHTML += `
+                    <div class="inc-date" style="color: ${colorSla}; font-weight: ${pesoSla};" title="Días desde el reporte">⏱ Transcurrido: ${inc.diasTranscurridos} día(s)</div>
+                `;
+            }
+
+            // Configurar badges de estado y botones permitidos en el flujo
+            const estadoActual = inc.estado || 'Pendiente';
+            let badgeEstadoClass = 'badge-estado-pendiente';
+            if (estadoActual === 'Asignado a Técnico') badgeEstadoClass = 'badge-estado-asignado';
+            else if (estadoActual === 'En Proceso') badgeEstadoClass = 'badge-estado-proceso';
+            else if (estadoActual === 'Resuelta') badgeEstadoClass = 'badge-estado-resuelta';
+
+            let accionesHTML = '';
+            if (esResuelta) {
                 // Solo se permite eliminar del historial una vez resuelto
                 accionesHTML = `
                     <button class="btn-action btn-delete" title="Eliminar del historial">
@@ -176,10 +239,29 @@ export default class UI {
                     </button>
                 `;
             } else {
+                let btnSiguienteEstado = '';
+                if (estadoActual === 'Pendiente') {
+                    btnSiguienteEstado = `
+                        <button class="btn-action btn-next-state" data-next="Asignado a Técnico" title="Asignar a Técnico">
+                            👤
+                        </button>
+                    `;
+                } else if (estadoActual === 'Asignado a Técnico') {
+                    btnSiguienteEstado = `
+                        <button class="btn-action btn-next-state" data-next="En Proceso" title="Iniciar Trabajo (En Proceso)">
+                            ⚙️
+                        </button>
+                    `;
+                } else if (estadoActual === 'En Proceso') {
+                    btnSiguienteEstado = `
+                        <button class="btn-action btn-next-state btn-resolve" data-next="Resuelta" title="Resolver (Notas obligatorias)">
+                            ✅
+                        </button>
+                    `;
+                }
+
                 accionesHTML = `
-                    <button class="btn-action btn-resolve" title="Marcar como solucionada">
-                        ✅
-                    </button>
+                    ${btnSiguienteEstado}
                     <button class="btn-action btn-edit" title="Editar detalles">
                         ✏️
                     </button>
@@ -200,9 +282,12 @@ export default class UI {
                     <span class="badge-urgencia ${urgenciaClass}">${inc.urgencia}</span>
                 </td>
                 <td class="desc-cell">
+                    <span class="badge-urgencia ${badgeEstadoClass}" style="margin-bottom: 0.4rem; display: inline-block;">${estadoActual}</span>
                     <p class="desc-text" title="${this.escaparHTML(inc.descripcion)}">
                         ${this.escaparHTML(inc.descripcion)}
                     </p>
+                    ${evidenciaHTML}
+                    ${notasResolucionHTML}
                 </td>
                 <td class="actions-cell">
                     ${accionesHTML}
@@ -216,8 +301,8 @@ export default class UI {
      * Actualiza el panel de estadísticas en tiempo real.
      */
     actualizarEstadisticas(incidencias) {
-        const pendientes = incidencias.filter(inc => inc.estado !== 'Solucionado');
-        const solucionadas = incidencias.filter(inc => inc.estado === 'Solucionado');
+        const pendientes = incidencias.filter(inc => inc.estado !== 'Resuelta');
+        const solucionadas = incidencias.filter(inc => inc.estado === 'Resuelta');
         
         const totalPendientes = pendientes.length;
         const totalSolucionadas = solucionadas.length;

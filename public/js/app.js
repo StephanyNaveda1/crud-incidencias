@@ -8,6 +8,13 @@ const ui = new UI();
 let todasLasIncidencias = [];
 let activeTab = 'pendientes'; // Pestaña activa por defecto
 
+// Elementos del modal de resolución (máquina de estados)
+const resolutionModal = document.getElementById('resolution-modal');
+const resolutionForm = document.getElementById('resolution-form');
+const resolutionNotesInput = document.getElementById('resolution-notes');
+const btnCancelResolution = document.getElementById('btn-cancel-resolution');
+let currentResolvingId = null;
+
 /**
  * Carga inicial de incidencias desde el servidor.
  */
@@ -36,7 +43,7 @@ async function cargarIncidencias() {
 }
 
 /**
- * Guarda o actualiza una incidencia en el servidor.
+ * Guarda o actualiza una incidencia en el servidor usando FormData (para archivos).
  */
 async function guardarIncidencia(e) {
     e.preventDefault();
@@ -54,17 +61,21 @@ async function guardarIncidencia(e) {
         // Deshabilitar botón durante el envío para evitar doble clic
         ui.btnSubmit.disabled = true;
         
+        // Preparar FormData para soportar la subida del archivo de captura de evidencia
+        const formData = new FormData();
+        formData.append('titulo', incidenciaData.titulo);
+        formData.append('ubicacion', incidenciaData.ubicacion);
+        formData.append('urgencia', incidenciaData.urgencia);
+        formData.append('descripcion', incidenciaData.descripcion);
+        
+        if (incidenciaData.foto) {
+            formData.append('foto', incidenciaData.foto);
+        }
+
         const respuesta = await fetch(url, {
             method: metodo,
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                titulo: incidenciaData.titulo,
-                ubicacion: incidenciaData.ubicacion,
-                urgencia: incidenciaData.urgencia,
-                descripcion: incidenciaData.descripcion
-            })
+            // NOTA: No declaramos 'Content-Type' para que el navegador configure automáticamente el boundary de multipart/form-data
+            body: formData
         });
 
         const resultado = await respuesta.json();
@@ -148,21 +159,25 @@ async function eliminarIncidencia(id) {
 }
 
 /**
- * Marca una incidencia como resuelta/solucionada.
+ * Cambia el estado de una incidencia en el servidor (Máquina de Estados).
  */
-async function resolverIncidencia(id) {
-    const incidencia = todasLasIncidencias.find(inc => inc.id === id);
-    if (!incidencia) return;
-
+async function cambiarEstadoIncidencia(id, nuevoEstado, notasResolucion = '') {
     try {
-        const respuesta = await fetch(`/api/incidencias/${id}/resolver`, {
-            method: 'PUT'
+        const respuesta = await fetch(`/api/incidencias/${id}/estado`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                estado: nuevoEstado,
+                notasResolucion: notasResolucion
+            })
         });
 
         const resultado = await respuesta.json();
 
         if (!respuesta.ok) {
-            throw new Error(resultado.error || 'No se pudo marcar la incidencia como resuelta.');
+            throw new Error(resultado.error || 'No se pudo cambiar el estado de la incidencia.');
         }
 
         // Actualizar en el estado local
@@ -170,20 +185,21 @@ async function resolverIncidencia(id) {
             inc.id === id ? resultado : inc
         );
 
-        ui.mostrarMensaje('Incidencia marcada como solucionada.');
+        ui.mostrarMensaje(`Estado actualizado a: "${nuevoEstado}"`);
 
-        // Si se estaba editando, limpiar el formulario
+        // Si se estaba editando la incidencia que cambió de estado, limpiar formulario
         if (ui.idEdicion === id) {
             ui.limpiarFormulario();
         }
 
-        // Actualizar tabla y estadísticas
+        // Actualizar UI
         filtrarIncidencias();
         ui.actualizarEstadisticas(todasLasIncidencias);
 
     } catch (error) {
-        console.error('Error al resolver incidencia:', error);
+        console.error('Error al transicionar estado:', error);
         ui.mostrarMensaje(error.message, 'error');
+        throw error;
     }
 }
 
@@ -198,7 +214,7 @@ function iniciarEdicionIncidencia(id) {
 }
 
 /**
- * Filtra las incidencias reactivamente en tiempo real por Ubicación o Urgencia.
+ * Filtra las incidencias reactivamente en tiempo real por Ubicación, Urgencia y Pestaña de Estado.
  */
 function filtrarIncidencias() {
     const buscador = document.getElementById('search-input');
@@ -208,10 +224,10 @@ function filtrarIncidencias() {
     const urgenciaSeleccionada = filtroUrgencia.value;
 
     const incidenciasFiltradas = todasLasIncidencias.filter(inc => {
-        // Filtro por pestaña (Pendientes vs Solucionadas)
+        // Filtro por pestaña (Pendientes/Otros vs Resuelta)
         const coincidePestana = activeTab === 'pendientes'
-            ? (inc.estado !== 'Solucionado')
-            : (inc.estado === 'Solucionado');
+            ? (inc.estado !== 'Resuelta')
+            : (inc.estado === 'Resuelta');
 
         // Filtro por término de búsqueda (Ubicación o Título)
         const coincideTermino = textoBusqueda === '' || 
@@ -300,11 +316,37 @@ document.addEventListener('DOMContentLoaded', () => {
         ui.limpiarFormulario();
     });
 
+    // Eventos del Modal de Notas de Resolución
+    resolutionForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const notas = resolutionNotesInput.value.trim();
+        if (!notas) {
+            ui.mostrarMensaje('Las notas de resolución son obligatorias.', 'error');
+            return;
+        }
+
+        try {
+            await cambiarEstadoIncidencia(currentResolvingId, 'Resuelta', notas);
+            resolutionModal.classList.add('hidden');
+            resolutionForm.reset();
+            currentResolvingId = null;
+        } catch (err) {
+            // El error ya es manejado por cambiarEstadoIncidencia
+        }
+    });
+
+    btnCancelResolution.addEventListener('click', (e) => {
+        e.preventDefault();
+        resolutionModal.classList.add('hidden');
+        resolutionForm.reset();
+        currentResolvingId = null;
+    });
+
     // Búsqueda y filtrado reactivo (tiempo real)
     document.getElementById('search-input').addEventListener('input', filtrarIncidencias);
     document.getElementById('filter-urgency').addEventListener('change', filtrarIncidencias);
 
-    // Delegación de eventos en la tabla para botones de Acción (Editar/Eliminar/Resolver)
+    // Delegación de eventos en la tabla para botones de Acción (Editar/Eliminar/Máquina de Estados)
     ui.tablaCuerpo.addEventListener('click', (e) => {
         const boton = e.target.closest('.btn-action');
         if (!boton) return;
@@ -316,8 +358,18 @@ document.addEventListener('DOMContentLoaded', () => {
             eliminarIncidencia(id);
         } else if (boton.classList.contains('btn-edit')) {
             iniciarEdicionIncidencia(id);
-        } else if (boton.classList.contains('btn-resolve')) {
-            resolverIncidencia(id);
+        } else if (boton.classList.contains('btn-next-state')) {
+            const nextState = boton.getAttribute('data-next');
+            if (nextState === 'Resuelta') {
+                // Abrir el modal para ingresar las notas obligatorias
+                currentResolvingId = id;
+                resolutionNotesInput.value = '';
+                resolutionModal.classList.remove('hidden');
+                resolutionNotesInput.focus();
+            } else {
+                // Cambiar de estado directamente
+                cambiarEstadoIncidencia(id, nextState);
+            }
         }
     });
 });

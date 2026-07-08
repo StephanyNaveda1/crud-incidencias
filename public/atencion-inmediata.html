@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Atención Inmediata - Prioridad Máxima</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --font-primary: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+            --font-secondary: 'Plus Jakarta Sans', sans-serif;
+            --primary: #a31414;
+            --text-main: #111827;
+            --text-muted: #4b5563;
+            --border-color: #e5e7eb;
+            --bg-page: #f9fafb;
+            --bg-card: #ffffff;
+            --urgencia-alta: #a31414;
+            --urgencia-alta-bg: rgba(163, 20, 20, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-primary);
+            background-color: var(--bg-page);
+            color: var(--text-main);
+            padding: 2rem;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: var(--bg-card);
+            padding: 2.5rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border: 1px solid var(--border-color);
+        }
+
+        /* Cabecera del Reporte */
+        .report-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 3px solid var(--primary);
+            padding-bottom: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .header-title h1 {
+            font-family: var(--font-secondary);
+            font-size: 2rem;
+            color: var(--primary);
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .header-title p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin-top: 0.25rem;
+            font-weight: 500;
+        }
+
+        .priority-badge {
+            background-color: var(--primary);
+            color: white;
+            padding: 0.5rem 1.25rem;
+            border-radius: 50px;
+            font-weight: 800;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            box-shadow: 0 2px 4px rgba(163, 20, 20, 0.3);
+        }
+
+        .report-meta {
+            display: flex;
+            justify-content: space-between;
+            background-color: #f3f4f6;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        /* Acciones de la vista (Botones) */
+        .action-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .btn-back {
+            text-decoration: none;
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: color 0.2s;
+        }
+
+        .btn-back:hover {
+            color: var(--primary);
+        }
+
+        .btn-print {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.6rem 1.5rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        .btn-print:hover {
+            background-color: #821010;
+        }
+
+        .btn-print:active {
+            transform: scale(0.98);
+        }
+
+        /* Tabla de Incidencias */
+        .incidencias-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .incidencias-table th {
+            background-color: #f3f4f6;
+            color: var(--text-main);
+            padding: 1rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 0.5px;
+            text-align: left;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .incidencias-table td {
+            padding: 1.25rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: top;
+        }
+
+        .incidencias-table tbody tr:hover {
+            background-color: rgba(0, 0, 0, 0.01);
+        }
+
+        .inc-title {
+            font-weight: 700;
+            font-size: 1.05rem;
+            color: var(--primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .inc-desc {
+            font-size: 0.9rem;
+            color: var(--text-main);
+            margin-top: 0.5rem;
+            line-height: 1.4;
+            white-space: pre-line;
+        }
+
+        .location-badge {
+            background-color: #e5e7eb;
+            color: #1f2937;
+            padding: 0.25rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            display: inline-block;
+        }
+
+        .status-pendiente { background-color: #fef3c7; color: #d97706; }
+        .status-asignado { background-color: #dbeafe; color: #2563eb; }
+        .status-proceso { background-color: #e0f2fe; color: #0284c7; }
+        .status-resuelta { background-color: #d1fae5; color: #059669; }
+
+        .evidence-thumbnail {
+            max-width: 100px;
+            max-height: 80px;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            display: block;
+            margin-top: 0.5rem;
+        }
+
+        .days-warning {
+            color: #dc2626;
+            font-weight: 700;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            margin-top: 0.25rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-muted);
+        }
+
+        .empty-state span {
+            font-size: 3rem;
+            display: block;
+            margin-bottom: 1rem;
+        }
+
+        .empty-state p {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        /* Estilos de Impresión */
+        @media print {
+            body {
+                background-color: white;
+                padding: 0;
+                color: black;
+            }
+
+            .container {
+                box-shadow: none;
+                border: none;
+                padding: 0;
+                max-width: 100%;
+            }
+
+            .action-bar {
+                display: none !important;
+            }
+
+            .btn-print, .btn-back {
+                display: none !important;
+            }
+
+            .incidencias-table th {
+                background-color: #eaeaea !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            .report-meta {
+                background-color: #eaeaea !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Barra de Acciones (Oculta en Impresión) -->
+        <div class="action-bar">
+            <a href="/" class="btn-back">⬅ Volver al Panel</a>
+            <button class="btn-print" onclick="window.print()">🖨 Imprimir Reporte</button>
+        </div>
+
+        <!-- Cabecera del Reporte -->
+        <header class="report-header">
+            <div class="header-title">
+                <h1>🚨 Prioridad Máxima</h1>
+                <p>Reporte de Atención Inmediata · Soporte UPTT</p>
+            </div>
+            <div class="priority-badge">SLA Crítico</div>
+        </header>
+
+        <!-- Metadatos de Generación -->
+        <div class="report-meta">
+            <div><strong>Filtro:</strong> Nivel de Urgencia "Alta" únicamente</div>
+            <div><strong>Fecha de Emisión:</strong> <span id="fecha-reporte"></span></div>
+        </div>
+
+        <!-- Cuerpo del Reporte -->
+        <div id="reporte-contenido">
+            <!-- Tabla de Incidencias -->
+            <table class="incidencias-table" id="tabla-reporte">
+                <thead>
+                    <tr>
+                        <th style="width: 25%;">Fecha / ID</th>
+                        <th style="width: 20%;">Ubicación</th>
+                        <th style="width: 40%;">Detalles del Problema</th>
+                        <th style="width: 15%;">Evidencia</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-reporte-body">
+                    <!-- Se carga dinámicamente -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Marcador que reemplaza el Backend con las incidencias Alta
+        /* INCIDENCIAS_ALTA_PLACEHOLDER */
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Establecer fecha de emisión
+            const ahora = new Date();
+            document.getElementById('fecha-reporte').textContent = ahora.toLocaleString('es-VE');
+
+            const tbody = document.getElementById('tabla-reporte-body');
+
+            if (typeof incidenciasAlta === 'undefined' || incidenciasAlta.length === 0) {
+                document.getElementById('reporte-contenido').innerHTML = `
+                    <div class="empty-state">
+                        <span>✅</span>
+                        <p>No existen incidencias con Nivel de Urgencia "Alta" pendientes en el sistema.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = '';
+            incidenciasAlta.forEach(inc => {
+                const tr = document.createElement('tr');
+
+                // Formatear Fecha
+                const fechaObj = new Date(inc.fecha);
+                const fechaFormateada = fechaObj.toLocaleString('es-VE', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+
+                // Clases del Badge de Estado
+                let statusClass = 'status-pendiente';
+                let statusName = inc.estado || 'Pendiente';
+                if (statusName === 'Asignado a Técnico') statusClass = 'status-asignado';
+                else if (statusName === 'En Proceso') statusClass = 'status-proceso';
+                else if (statusName === 'Resuelta') statusClass = 'status-resuelta';
+
+                // Advertencia de antigüedad > 3 días
+                let diasWarningHTML = '';
+                if (inc.diasTranscurridos > 3 && inc.estado !== 'Resuelta') {
+                    diasWarningHTML = `
+                        <div class="days-warning">
+                            ⚠️ Crítico: ${inc.diasTranscurridos} días sin resolver
+                        </div>
+                    `;
+                } else {
+                    diasWarningHTML = `<div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;">⏱ Transcurrido: ${inc.diasTranscurridos} día(s)</div>`;
+                }
+
+                // Imagen de evidencia
+                let imgHTML = '<span style="color: var(--text-muted); font-size: 0.85rem; font-style: italic;">Sin foto</span>';
+                if (inc.foto) {
+                    imgHTML = `<img src="/api/incidencias/uploads/${inc.foto}" class="evidence-thumbnail" alt="Evidencia">`;
+                }
+
+                tr.innerHTML = `
+                    <td>
+                        <div style="font-weight: 700;">${fechaFormateada}</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">ID: ${inc.id}</div>
+                        ${diasWarningHTML}
+                    </td>
+                    <td>
+                        <span class="location-badge">📍 ${escaparHTML(inc.ubicacion)}</span>
+                    </td>
+                    <td>
+                        <div class="inc-title">${escaparHTML(inc.titulo)}</div>
+                        <div>
+                            <span class="status-badge ${statusClass}">${statusName}</span>
+                        </div>
+                        <div class="inc-desc">${escaparHTML(inc.descripcion)}</div>
+                        ${inc.notasResolucion ? `<div style="margin-top: 0.5rem; padding: 0.5rem; background: #f0fdf4; border-left: 3px solid #059669; border-radius: 4px; font-size: 0.85rem;"><strong>Resuelto:</strong> ${escaparHTML(inc.notasResolucion)}</div>` : ''}
+                    </td>
+                    <td>
+                        ${imgHTML}
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        });
+
+        function escapingMap(char) {
+            switch (char) {
+                case '&': return '&amp;';
+                case '<': return '&lt;';
+                case '>': return '&gt;';
+                case '"': return '&quot;';
+                case "'": return '&#039;';
+                default: return char;
+            }
+        }
+
+        function escaparHTML(str) {
+            if (!str) return '';
+            return str.replace(/[&<>"']/g, escapingMap);
+        }
+    </script>
+</body>
+</html>
